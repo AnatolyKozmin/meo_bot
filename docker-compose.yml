@@ -1,0 +1,14 @@
+services:
+  bot:
+    build: .
+    container_name: meo_bot
+    restart: unless-stopped
+    env_file:
+      - .env
+    volumes:
+      # Сохраняем базу данных на хосте, чтобы данные не терялись
+      - ./data:/app/data
+    environment:
+      - TZ=Europe/Moscow
+      - DATA_DIR=/app/data
+

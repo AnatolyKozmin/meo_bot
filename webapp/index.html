@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>66 ФК'25 — Отметка</title>
+    
+    <!-- Telegram WebApp SDK -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    
+    <!-- QR Scanner Library -->
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+    
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Заголовок -->
+        <header class="header">
+            <h1 class="title">Festival of Culture</h1>
+            <p class="subtitle">Отсканируйте QR-код дня</p>
+        </header>
+
+        <!-- Сканер -->
+        <main class="scanner-section">
+            <div id="scanner-container">
+                <div id="reader"></div>
+                <div class="scanner-overlay">
+                    <div class="scanner-frame"></div>
+                </div>
+            </div>
+            
+            <div id="scanner-placeholder" class="scanner-placeholder">
+                <div class="placeholder-icon">📷</div>
+                <p>Нажмите кнопку ниже, чтобы начать сканирование</p>
+            </div>
+        </main>
+
+        <!-- Статус -->
+        <div id="status" class="status hidden">
+            <div class="status-icon"></div>
+            <p class="status-text"></p>
+        </div>
+
+        <!-- Кнопки -->
+        <footer class="actions">
+            <button id="scan-btn" class="btn btn-primary">
+                <span class="btn-icon">📷</span>
+                Сканировать QR-код
+            </button>
+            <button id="stop-btn" class="btn btn-secondary hidden">
+                <span class="btn-icon">✕</span>
+                Остановить
+            </button>
+        </footer>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

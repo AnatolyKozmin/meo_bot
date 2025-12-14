@@ -1,0 +1,387 @@
+/* ===== Подключение шрифтов ===== */
+@font-face {
+    font-family: 'Legend';
+    src: url('Legend.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'FritzQuadrata';
+    src: url('fritzquadratacyrillic.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* ===== 66 ФК'25 Брендбук ===== */
+:root {
+    /* Основные цвета из брендбука */
+    --color-primary: #B40943;        /* Бордовый - главный акцент */
+    --color-primary-dark: #8a0733;
+    --color-primary-light: #d4335f;
+    
+    --color-secondary: #2E4FAA;      /* Синий */
+    --color-accent-yellow: #EEB72D;  /* Жёлтый/золотой */
+    --color-accent-olive: #898930;   /* Оливковый */
+    --color-accent-purple: #755D8F;  /* Фиолетовый */
+    --color-accent-cyan: #78C6CF;    /* Голубой */
+    
+    --color-success: #898930;        /* Оливковый для успеха */
+    --color-error: #B40943;          /* Бордовый для ошибок */
+    --color-warning: #EEB72D;        /* Жёлтый для предупреждений */
+    
+    /* Фоны */
+    --bg-primary: #EAE0C7;           /* Бежевый фон */
+    --bg-secondary: #E6F2F2;         /* Светло-голубой фон */
+    --bg-card: rgba(255, 255, 255, 0.7);
+    
+    /* Текст */
+    --text-primary: #2E211B;         /* Тёмно-коричневый */
+    --text-secondary: #786359;       /* Коричневый */
+    
+    /* Размеры */
+    --radius-sm: 8px;
+    --radius-md: 16px;
+    --radius-lg: 24px;
+    --radius-full: 50%;
+    
+    /* Тени */
+    --shadow-sm: 0 2px 8px rgba(46, 33, 27, 0.1);
+    --shadow-md: 0 4px 16px rgba(46, 33, 27, 0.15);
+    --shadow-lg: 0 8px 32px rgba(46, 33, 27, 0.2);
+    
+    /* Анимации */
+    --transition-fast: 0.15s ease;
+    --transition-normal: 0.3s ease;
+}
+
+/* ===== Reset & Base ===== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    height: 100%;
+    overflow: hidden;
+}
+
+body {
+    font-family: 'FritzQuadrata', 'Times New Roman', Georgia, serif;
+    background-color: var(--bg-primary);
+    background-image: url('bg.svg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    color: var(--text-primary);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* ===== Container ===== */
+.container {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    max-width: 100%;
+    padding: 20px;
+    padding-bottom: calc(20px + env(safe-area-inset-bottom));
+}
+
+/* ===== Header ===== */
+.header {
+    text-align: center;
+    padding: 24px 0;
+    flex-shrink: 0;
+}
+
+.title {
+    font-family: 'Legend', 'Times New Roman', Georgia, serif;
+    font-size: 42px;
+    font-weight: normal;
+    margin-bottom: 10px;
+    color: #2E211B;
+    letter-spacing: 2px;
+}
+
+.subtitle {
+    font-family: 'FritzQuadrata', 'Times New Roman', Georgia, serif;
+    font-size: 15px;
+    color: #2E211B;
+}
+
+/* ===== Scanner Section ===== */
+.scanner-section {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    margin: 20px 0;
+}
+
+#scanner-container {
+    display: none;
+    position: relative;
+    width: 100%;
+    max-width: 300px;
+    aspect-ratio: 1;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    background: var(--bg-secondary);
+    box-shadow: var(--shadow-lg);
+}
+
+#scanner-container.active {
+    display: block;
+}
+
+#reader {
+    width: 100%;
+    height: 100%;
+}
+
+#reader video {
+    object-fit: cover !important;
+    border-radius: var(--radius-lg);
+}
+
+.scanner-overlay {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.scanner-frame {
+    width: 200px;
+    height: 200px;
+    border: 3px solid var(--color-primary);
+    border-radius: var(--radius-md);
+    box-shadow: 0 0 0 9999px rgba(234, 224, 199, 0.6);
+    animation: scan-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes scan-pulse {
+    0%, 100% { border-color: var(--color-primary); }
+    50% { border-color: var(--color-accent-yellow); }
+}
+
+.scanner-placeholder {
+    text-align: center;
+    padding: 40px;
+    background: var(--bg-card);
+    border-radius: var(--radius-lg);
+    border: 2px dashed var(--text-secondary);
+    width: 100%;
+    max-width: 300px;
+    box-shadow: var(--shadow-sm);
+}
+
+.scanner-placeholder.hidden {
+    display: none;
+}
+
+.placeholder-icon {
+    font-size: 64px;
+    margin-bottom: 16px;
+    opacity: 0.6;
+}
+
+.scanner-placeholder p {
+    font-family: 'FritzQuadrata', serif;
+    color: var(--text-secondary);
+    font-size: 14px;
+}
+
+/* ===== Status ===== */
+.status {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 16px 24px;
+    border-radius: var(--radius-md);
+    margin: 20px 0;
+    animation: slide-up 0.3s ease;
+    flex-shrink: 0;
+}
+
+.status.hidden {
+    display: none;
+}
+
+.status.success {
+    background: rgba(137, 137, 48, 0.15);
+    border: 2px solid var(--color-success);
+    color: var(--color-success);
+}
+
+.status.error {
+    background: rgba(180, 9, 67, 0.1);
+    border: 2px solid var(--color-error);
+    color: var(--color-error);
+}
+
+.status.loading {
+    background: rgba(46, 79, 170, 0.1);
+    border: 2px solid var(--color-secondary);
+    color: var(--color-secondary);
+}
+
+.status-icon {
+    font-size: 24px;
+}
+
+.status-text {
+    font-family: 'FritzQuadrata', serif;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+@keyframes slide-up {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ===== Buttons ===== */
+.actions {
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.btn {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 14px 24px;
+    border: none;
+    border-radius: 12px;
+    font-family: 'FritzQuadrata', serif;
+    font-size: 15px;
+    cursor: pointer;
+    transition: all var(--transition-normal);
+    -webkit-tap-highlight-color: transparent;
+    overflow: hidden;
+}
+
+.btn:active {
+    transform: scale(0.98);
+}
+
+.btn.hidden {
+    display: none;
+}
+
+/* Главная кнопка с SVG фоном */
+.btn-primary {
+    background-image: url('btn-bg.svg');
+    background-size: 100% 100%;
+    background-position: center;
+    background-repeat: no-repeat;
+    color: #FFFFFF;
+    border: none;
+    border-radius: 12px;
+    padding: 14px 28px;
+    box-shadow: 0 4px 12px rgba(46, 33, 27, 0.2);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.btn-primary:hover {
+    box-shadow: 0 6px 16px rgba(46, 33, 27, 0.3);
+    transform: translateY(-2px);
+}
+
+.btn-primary:active {
+    transform: translateY(0) scale(0.98);
+}
+
+/* Вторичная кнопка */
+.btn-secondary {
+    background: rgba(255, 255, 255, 0.8);
+    color: var(--text-primary);
+    border: 2px solid var(--color-primary);
+}
+
+.btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.95);
+    border-color: var(--color-accent-yellow);
+}
+
+.btn-icon {
+    font-size: 22px;
+}
+
+/* ===== Скрываем дефолтные элементы html5-qrcode ===== */
+#reader__scan_region {
+    background: transparent !important;
+}
+
+#reader__dashboard {
+    display: none !important;
+}
+
+#reader__status_span {
+    display: none !important;
+}
+
+/* ===== Декоративная линия под заголовком ===== */
+.header::after {
+    content: '';
+    display: block;
+    width: 120px;
+    height: 2px;
+    background: linear-gradient(90deg, 
+        transparent, 
+        var(--color-accent-yellow), 
+        var(--color-primary), 
+        var(--color-accent-yellow), 
+        transparent
+    );
+    margin: 16px auto 0;
+}
+
+/* ===== Адаптивность ===== */
+@media (max-height: 600px) {
+    .header {
+        padding: 10px 0;
+    }
+    
+    .title {
+        font-size: 24px;
+    }
+    
+    .scanner-section {
+        margin: 10px 0;
+    }
+    
+    #scanner-container {
+        max-width: 250px;
+    }
+    
+    .scanner-frame {
+        width: 160px;
+        height: 160px;
+    }
+    
+    .btn {
+        padding: 14px 24px;
+    }
+}

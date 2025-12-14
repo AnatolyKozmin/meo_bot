@@ -1,8 +1,12 @@
 from aiogram.types import (
     ReplyKeyboardMarkup, KeyboardButton,
-    InlineKeyboardMarkup, InlineKeyboardButton
+    InlineKeyboardMarkup, InlineKeyboardButton,
+    WebAppInfo
 )
+
 from aiogram.utils.keyboard import InlineKeyboardBuilder, ReplyKeyboardBuilder
+
+from config import WEBAPP_URL
 
 
 # === Клавиатуры пользователя ===
@@ -10,7 +14,13 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder, ReplyKeyboardBuilder
 def get_main_menu() -> ReplyKeyboardMarkup:
     """Главное меню пользователя."""
     builder = ReplyKeyboardBuilder()
-    builder.row(KeyboardButton(text="📝 Ввести код дня"))
+    # Кнопка с QR-сканером (Mini App)
+    if WEBAPP_URL:
+        builder.row(KeyboardButton(
+            text="📷 Сканировать QR",
+            web_app=WebAppInfo(url=WEBAPP_URL)
+        ))
+    builder.row(KeyboardButton(text="📝 Ввести код вручную"))
     builder.row(KeyboardButton(text="📊 Моя статистика"))
     return builder.as_markup(resize_keyboard=True)
 
@@ -37,6 +47,7 @@ def get_admin_menu() -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
     builder.row(InlineKeyboardButton(text="📅 Открыть новый день", callback_data="admin_new_day"))
     builder.row(InlineKeyboardButton(text="🔒 Закрыть текущий день", callback_data="admin_close_day"))
+    builder.row(InlineKeyboardButton(text="🔲 Генерация QR-кодов", callback_data="admin_qr_codes"))
     builder.row(InlineKeyboardButton(text="📊 Статистика по дням", callback_data="admin_stats"))
     builder.row(InlineKeyboardButton(text="👥 Список участников", callback_data="admin_users"))
     builder.row(InlineKeyboardButton(text="📋 Полный отчёт", callback_data="admin_full_report"))
@@ -78,5 +89,18 @@ def get_confirm_broadcast_kb() -> InlineKeyboardMarkup:
         InlineKeyboardButton(text="✅ Отправить", callback_data="confirm_broadcast"),
         InlineKeyboardButton(text="❌ Отмена", callback_data="cancel_broadcast")
     )
+    return builder.as_markup()
+
+
+def get_qr_day_selection_kb() -> InlineKeyboardMarkup:
+    """Выбор дня для генерации QR-кода."""
+    builder = InlineKeyboardBuilder()
+    for day in range(1, 6):
+        builder.add(InlineKeyboardButton(
+            text=f"День {day}",
+            callback_data=f"qr_day_{day}"
+        ))
+    builder.adjust(3)
+    builder.row(InlineKeyboardButton(text="◀️ Назад", callback_data="admin_back"))
     return builder.as_markup()
 

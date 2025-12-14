@@ -5,10 +5,11 @@ services:
     restart: unless-stopped
     env_file:
       - .env
+    ports:
+      - "8080:8080"  # API порт
     volumes:
       # Сохраняем базу данных на хосте, чтобы данные не терялись
       - ./data:/app/data
     environment:
       - TZ=Europe/Moscow
       - DATA_DIR=/app/data
-

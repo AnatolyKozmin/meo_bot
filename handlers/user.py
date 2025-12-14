@@ -1,3 +1,4 @@
+import json
 from aiogram import Router, F
 from aiogram.types import Message
 from aiogram.filters import Command, CommandStart
@@ -157,7 +158,7 @@ async def process_group_name(message: Message, state: FSMContext):
 
 # === Ввод кода дня ===
 
-@router.message(F.text == "📝 Ввести код дня")
+@router.message(F.text == "📝 Ввести код вручную")
 async def enter_code_start(message: Message, state: FSMContext):
     """Начало ввода кода дня."""
     user = await db.get_user(message.from_user.id)
@@ -271,4 +272,76 @@ async def show_my_stats(message: Message):
         parse_mode="HTML",
         reply_markup=get_main_menu()
     )
+
+
+# === Обработка данных из Mini App (QR-сканер) ===
+
+@router.message(F.web_app_data)
+async def process_webapp_data(message: Message):
+    """Обработка данных от Mini App (отсканированный QR-код)."""
+    user = await db.get_user(message.from_user.id)
+    if not user:
+        await message.answer(
+            "❌ Вы не зарегистрированы. Используйте /start для регистрации.",
+            reply_markup=get_main_menu()
+        )
+        return
+    
+    # Парсим данные от Mini App
+    try:
+        data = json.loads(message.web_app_data.data)
+        code = data.get('code', '').strip().upper()
+    except (json.JSONDecodeError, AttributeError):
+        # Если не JSON, то просто строка с кодом
+        code = message.web_app_data.data.strip().upper()
+    
+    if not code:
+        await message.answer(
+            "❌ Не удалось прочитать QR-код. Попробуйте ещё раз.",
+            reply_markup=get_main_menu()
+        )
+        return
+    
+    # Проверяем активный день
+    active_day = await db.get_active_day()
+    if not active_day:
+        await message.answer(
+            "⏳ Сейчас нет активного дня. Ожидайте открытия нового дня.",
+            reply_markup=get_main_menu()
+        )
+        return
+    
+    # Проверяем, не отмечен ли уже
+    already_marked = await db.check_attendance(message.from_user.id, active_day['day_number'])
+    if already_marked:
+        await message.answer(
+            f"✅ Вы уже отмечены на День {active_day['day_number']}!",
+            reply_markup=get_main_menu()
+        )
+        return
+    
+    # Проверяем код
+    correct_code = active_day['code'].upper()
+    
+    if code == correct_code:
+        success = await db.mark_attendance(message.from_user.id, active_day['day_number'])
+        
+        if success:
+            attendance = await db.get_user_attendance(message.from_user.id)
+            await message.answer(
+                f"✅ Отлично! Вы отмечены на День {active_day['day_number']}!\n\n"
+                f"📊 Всего посещено дней: {len(attendance)} из 5",
+                reply_markup=get_main_menu()
+            )
+        else:
+            await message.answer(
+                f"✅ Вы уже были отмечены на День {active_day['day_number']}!",
+                reply_markup=get_main_menu()
+            )
+    else:
+        await message.answer(
+            f"❌ Неверный QR-код.\n\n"
+            f"Убедитесь, что сканируете актуальный код дня.",
+            reply_markup=get_main_menu()
+        )
 

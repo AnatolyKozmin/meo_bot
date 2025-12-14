@@ -1,6 +1,6 @@
 import asyncio
 from aiogram import Router, F, Bot
-from aiogram.types import Message, CallbackQuery
+from aiogram.types import Message, CallbackQuery, BufferedInputFile
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
@@ -9,8 +9,9 @@ import database as db
 from config import ADMIN_IDS
 from keyboards import (
     get_admin_menu, get_day_selection_kb, get_back_to_admin_kb,
-    get_cancel_broadcast_kb, get_confirm_broadcast_kb
+    get_cancel_broadcast_kb, get_confirm_broadcast_kb, get_qr_day_selection_kb
 )
+from qr_generator import generate_qr_code
 
 router = Router()
 
@@ -335,6 +336,88 @@ async def full_report(callback: CallbackQuery, bot: Bot):
             reply_markup=get_back_to_admin_kb()
         )
     
+    await callback.answer()
+
+
+# === Генерация QR-кодов ===
+
+@router.callback_query(F.data == "admin_qr_codes")
+async def qr_codes_menu(callback: CallbackQuery):
+    """Меню генерации QR-кодов."""
+    if not is_admin(callback.from_user.id):
+        await callback.answer("❌ Нет доступа", show_alert=True)
+        return
+    
+    days = await db.get_all_days()
+    
+    if not days:
+        await callback.message.edit_text(
+            "❌ Сначала создайте хотя бы один день через 'Открыть новый день'",
+            reply_markup=get_back_to_admin_kb()
+        )
+        await callback.answer()
+        return
+    
+    days_info = ""
+    for day in days:
+        days_info += f"📅 День {day['day_number']} — код: <code>{day['code']}</code>\n"
+    
+    await callback.message.edit_text(
+        f"🔲 <b>Генерация QR-кодов</b>\n\n"
+        f"{days_info}\n"
+        f"Выберите день для генерации QR-кода:",
+        parse_mode="HTML",
+        reply_markup=get_qr_day_selection_kb()
+    )
+    await callback.answer()
+
+
+@router.callback_query(F.data.startswith("qr_day_"))
+async def generate_qr_for_day(callback: CallbackQuery, bot: Bot):
+    """Генерация QR-кода для конкретного дня."""
+    if not is_admin(callback.from_user.id):
+        await callback.answer("❌ Нет доступа", show_alert=True)
+        return
+    
+    day_number = int(callback.data.split("_")[-1])
+    days = await db.get_all_days()
+    
+    day = next((d for d in days if d['day_number'] == day_number), None)
+    
+    if not day:
+        await callback.answer("❌ День не найден. Сначала создайте его.", show_alert=True)
+        return
+    
+    await callback.message.edit_text(
+        f"⏳ Генерирую QR-код для Дня {day_number}...",
+        reply_markup=None
+    )
+    
+    # Генерируем QR
+    qr_buffer = generate_qr_code(day['code'], day_number)
+    
+    # Отправляем изображение
+    photo = BufferedInputFile(
+        qr_buffer.read(),
+        filename=f"qr_day_{day_number}.png"
+    )
+    
+    await bot.send_photo(
+        callback.from_user.id,
+        photo=photo,
+        caption=(
+            f"🔲 <b>QR-код для Дня {day_number}</b>\n\n"
+            f"📝 Код: <code>{day['code']}</code>\n\n"
+            f"Распечатайте этот QR-код и покажите участникам для сканирования."
+        ),
+        parse_mode="HTML"
+    )
+    
+    await bot.send_message(
+        callback.from_user.id,
+        "✅ QR-код сгенерирован!",
+        reply_markup=get_back_to_admin_kb()
+    )
     await callback.answer()
 
 

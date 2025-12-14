@@ -6,12 +6,17 @@ API для Telegram Mini App.
 import hashlib
 import hmac
 import json
+import os
+from pathlib import Path
 from urllib.parse import parse_qsl
 
 from aiohttp import web
 
 import database as db
 from config import BOT_TOKEN
+
+# Путь к папке webapp
+WEBAPP_PATH = Path(__file__).parent / 'webapp'
 
 
 def verify_telegram_data(init_data: str) -> dict | None:
@@ -56,6 +61,14 @@ def verify_telegram_data(init_data: str) -> dict | None:
     except Exception as e:
         print(f"Ошибка верификации: {e}")
         return None
+
+
+async def handle_index(request: web.Request) -> web.Response:
+    """Главная страница — отдаём index.html."""
+    index_path = WEBAPP_PATH / 'index.html'
+    if index_path.exists():
+        return web.FileResponse(index_path)
+    return web.Response(text="Mini App not found", status=404)
 
 
 async def handle_check_in(request: web.Request) -> web.Response:
@@ -194,15 +207,28 @@ def create_app() -> web.Application:
     """Создание веб-приложения."""
     app = web.Application()
     
+    # Главная страница
+    app.router.add_get('/', handle_index)
+    
     # API эндпоинты
     app.router.add_route("*", "/api/check-in", handle_check_in)
     app.router.add_get("/api/status", handle_status)
     
-    # Раздача статических файлов (фронтенд)
-    import os
-    webapp_path = os.path.join(os.path.dirname(__file__), 'webapp')
-    if os.path.exists(webapp_path):
-        app.router.add_static('/', webapp_path, name='static')
+    # Раздача статических файлов (CSS, JS, шрифты, картинки)
+    if WEBAPP_PATH.exists():
+        app.router.add_static('/static/', WEBAPP_PATH, name='static')
+        # Также раздаём файлы из корня для совместимости
+        app.router.add_get('/{filename}', serve_static_file)
     
     return app
 
+
+async def serve_static_file(request: web.Request) -> web.Response:
+    """Раздача статических файлов из webapp."""
+    filename = request.match_info['filename']
+    file_path = WEBAPP_PATH / filename
+    
+    if file_path.exists() and file_path.is_file():
+        return web.FileResponse(file_path)
+    
+    return web.Response(text="Not found", status=404)
